@@ -43,7 +43,7 @@ class DBWrapper:
                 fields.append(field_for_db('id', IntegerField._type, True))
                 primary_key = 'id'
             else:
-                raise QueryException("There is field 'id' in the table")
+                raise QueryException("There is already field 'id' in the table")
 
 
         s += ', '.join([f'{field.name} {field.type}'
