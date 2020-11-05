@@ -148,16 +148,24 @@ class Table(metaclass = MetaTable):
 
         if bool(args) and bool(kwargs):
             raise ValueError('Only positional or only keyword arguments')
-        if args:
-            pass #TODO сделать
-        elif kwargs:
-            for key in kwargs:
-                if key in self._names:
-                    setattr(self, key, kwargs[key])
-                    # print('set %s' % key)
+
+        elif args or kwargs:
+            if args:
+                if len(self._names) == len(args):
+                    for i, name in enumerate(self._names):
+                        setattr(self, name, args[i])
                 else:
-                    raise KeyError('There are no key {} in table {}'.\
-                                    format(key, self.__class__.__name__))
+                    raise ValueError('Not enough positional arguments')
+            elif kwargs:
+                for key in kwargs:
+                    if key in self._names:
+                        setattr(self, key, kwargs[key])
+                        # print('set %s' % key)
+                    else:
+                        raise KeyError('There are no key {} in table {}'.\
+                                        format(key, self.__class__.__name__))
+            else:
+                raise ValueError('Unknown Error')
             self.save()
         else:
             raise ValueError('Empty record')
@@ -200,6 +208,7 @@ def main():
     t2 = MyNiceUser(age = 125, height = 90, name = 'Kin')
 
     t3 = MyDeusDevs(age=40, exp=45, name='Ken')
+    t4 = MyDeusDevs(50, 10, 'Jun')
 
     db.debug_print('MyNiceUser')
     db.debug_print('MyDeusDevs')
