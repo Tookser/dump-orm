@@ -95,9 +95,22 @@ class TextField(AbstractField):
 
 
 class MetaTable(type):
-    def _add_field(self, field):
-        '''добавляет поле в таблицу'''
-        pass
+    def _add_field(self, key, value, fields):
+        '''управляет созданием поля value в таблице под именем key
+        вернее, в списке fields'''
+        self._names.append(key)
+        self._types_of_values[key] = value.__class__._type
+
+        if value.pk:
+            if self.pk_flag:
+                raise DBException('No more than one primary key')
+            else:
+                self.pk_flag = True
+                pk_key_name = key
+        fields.append(field_for_db(key,
+                                   value.__class__.type(),
+                                   value.pk))
+        value.name = key # нужно, чтобы переменная знала своё имя?
 
     def __init__(self, name, bases, attrs):
         super().__init__(name, bases, attrs)
@@ -114,23 +127,24 @@ class MetaTable(type):
             # список из field_for_db
             fields = []
 
-            pk_flag = False # флаг показывает, есть ли уже primary key
+            self.pk_flag = False # флаг показывает, есть ли уже primary key
             pk_key_name = None # его название
             for key, value in attrs.items():
                 if isinstance(value, AbstractField):
-                    self._names.append(key)
-                    self._types_of_values[key] = value.__class__._type
+                    self._add_field(key, value, fields)
+                    # self._names.append(key)
+                    # self._types_of_values[key] = value.__class__._type
 
-                    if value.pk:
-                        if pk_flag:
-                            raise DBException('No more than one primary key')
-                        else:
-                            pk_flag = True
-                            pk_key_name = key
-                    fields.append(field_for_db(key,
-                                               value.__class__.type(),
-                                               value.pk))
-                    value.name = key # нужно, чтобы переменная знала своё имя?
+                    # if value.pk:
+                    #     if self.pk_flag:
+                    #         raise DBException('No more than one primary key')
+                    #     else:
+                    #         self.pk_flag = True
+                    #         pk_key_name = key
+                    # fields.append(field_for_db(key,
+                    #                            value.__class__.type(),
+                    #                            value.pk))
+                    # value.name = key # нужно, чтобы переменная знала своё имя?
             if not fields:
                 raise DBException('Can\'t create type of objects \
                                   without fields')
@@ -190,10 +204,18 @@ def main():
         # name = TextField(pk=True)
         name = TextField()
 
+    class MyDeusDevs(Table):
+        age = IntegerField()
+        exp = IntegerField()
+        name = TextField()
+
     t = MyNiceUser(age = 24, height = 185, name = 'John')
     t2 = MyNiceUser(age = 125, height = 90, name = 'Kin')
 
+    t3 = MyDeusDevs(age=40, exp=45, name='Ken')
+
     db.debug_print('MyNiceUser')
+    db.debug_print('MyDeusDevs')
 
 if __name__ == '__main__':
     main()
