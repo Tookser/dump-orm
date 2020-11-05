@@ -38,7 +38,7 @@ class DBWrapper:
         s = f'CREATE TABLE {name} ('
 
         if primary_key is None: # если нет pk
-            if is_no_id_field(fields):
+            if is_no_id_field(fields): # если нет поля под именем 'id'
                 from __init__ import IntegerField
                 fields.append(field_for_db('id', IntegerField._type, True))
                 primary_key = 'id'
@@ -57,6 +57,7 @@ class DBWrapper:
 
 
     def make_record(self, *, table, content):
+        '''вставляет запись'''
         keys = []
         values = []
 
@@ -73,6 +74,11 @@ class DBWrapper:
              'VALUES '
              '(' + ', '.join(values) + ');')
         self.query(s)
+
+    def update_record(self, *, table, content):
+        raise NotImplementedError
+
+
 
     def debug_print(self, table):
         # TODO убрать потом

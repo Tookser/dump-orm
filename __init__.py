@@ -143,7 +143,10 @@ class MetaTable(type):
 
 
 class Table(metaclass = MetaTable):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, save=True, **kwargs):
+        '''создаёт объект
+        save - если нужно сохранять
+        при false обращение по id'у'''
         self._values = {}
 
         if bool(args) and bool(kwargs):
@@ -151,6 +154,7 @@ class Table(metaclass = MetaTable):
 
         elif args or kwargs:
             if args:
+                # print(self._names, args)
                 if len(self._names) == len(args):
                     for i, name in enumerate(self._names):
                         setattr(self, name, args[i])
@@ -166,14 +170,24 @@ class Table(metaclass = MetaTable):
                                         format(key, self.__class__.__name__))
             else:
                 raise ValueError('Unknown Error')
-            self.save()
+
+            if save:
+                self.save()
+            else:
+                raise NotImplementedError
         else:
             raise ValueError('Empty record')
 
 
 
     def save(self):
+        '''сохранение при создании объекта'''
         db.make_record(table=self.__class__.__name__, content=iter(self))
+
+    def update(self):
+        '''обновление объекта в БД'''
+        raise NotImplementedError
+        db.update_record(table=self.__class__.__name__, content=iter(self))
 
     @classmethod
     def all(cls):
@@ -209,6 +223,12 @@ def main():
 
     t3 = MyDeusDevs(age=40, exp=45, name='Ken')
     t4 = MyDeusDevs(50, 10, 'Jun')
+    try:
+        t5 = MyDeusDevs(500)
+    except ValueError:
+        pass
+    else:
+        raise
 
     db.debug_print('MyNiceUser')
     db.debug_print('MyDeusDevs')
