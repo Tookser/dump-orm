@@ -1,6 +1,7 @@
 from collections import namedtuple
 import sqlite3
 
+from fields import IntegerField
 
 # ЗДЕСЬ ДАННЫЕ ДЛЯ ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ
 # TODO сделать возможность их менять
@@ -39,7 +40,6 @@ class DBWrapper:
 
         if primary_key is None: # если нет pk
             if is_no_id_field(fields): # если нет поля под именем 'id'
-                from __init__ import IntegerField
                 fields.append(field_for_db('id', IntegerField._type, True))
                 primary_key = 'id'
             else:
