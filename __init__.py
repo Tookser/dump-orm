@@ -132,19 +132,6 @@ class MetaTable(type):
             for key, value in attrs.items():
                 if isinstance(value, AbstractField):
                     self._add_field(key, value, fields)
-                    # self._names.append(key)
-                    # self._types_of_values[key] = value.__class__._type
-
-                    # if value.pk:
-                    #     if self.pk_flag:
-                    #         raise DBException('No more than one primary key')
-                    #     else:
-                    #         self.pk_flag = True
-                    #         pk_key_name = key
-                    # fields.append(field_for_db(key,
-                    #                            value.__class__.type(),
-                    #                            value.pk))
-                    # value.name = key # нужно, чтобы переменная знала своё имя?
             if not fields:
                 raise DBException('Can\'t create type of objects \
                                   without fields')
