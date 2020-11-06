@@ -28,7 +28,7 @@ class MetaTable(type):
                 raise DBException('No more than one primary key')
             else:
                 self.pk_flag = True
-                pk_key_name = key
+                self.pk_key_name = key
         fields.append(field_for_db(key,
                                    value.__class__.type(),
                                    value.pk))
@@ -50,24 +50,25 @@ class MetaTable(type):
             fields = []
 
             self.pk_flag = False # флаг показывает, есть ли уже primary key
-            pk_key_name = None # его название
+            self.pk_key_name = None # его название
             for key, value in attrs.items():
                 if isinstance(value, AbstractField):
                     self._add_field(key, value, fields)
             if not fields:
                 raise DBException('Can\'t create type of objects \
                                   without fields')
-# нужно всегда иметь поле-праймари кей TODO сделать это
+            # for field in fields:
+
             try:
-                db.create_table(name, fields, pk_key_name)
+                db.create_table(name, fields, self.pk_key_name)
             except dblib.QueryException:
                 raise DBException('Can\'t create table, internal error')
 
 
 class Table(metaclass = MetaTable):
-    def __init__(self, *args, save=True, **kwargs):
+    def __init__(self, *args, _save=True, **kwargs):
         '''создаёт объект
-        save - если нужно сохранять
+        _save - если нужно сохранять
         при false обращение по id'у'''
         self._values = {}
 
@@ -93,10 +94,11 @@ class Table(metaclass = MetaTable):
             else:
                 raise ValueError('Unknown Error')
 
-            if save:
+            if _save:
                 self.save()
             else:
                 raise NotImplementedError
+                # self._update()
         else:
             raise ValueError('Empty record')
 
@@ -108,8 +110,8 @@ class Table(metaclass = MetaTable):
 
     def update(self):
         '''обновление объекта в БД'''
-        raise NotImplementedError
-        db.update_record(table=self.__class__.__name__, content=iter(self))
+        # raise NotImplementedError
+        db.update_record(table=self.__class__.__name__, content=self._values)
 
     @classmethod
     def all(cls):
@@ -132,28 +134,30 @@ def main():
     class MyNiceUser(Table):
         age = IntegerField()
         height = IntegerField()
-        # name = TextField(pk=True)
-        name = TextField()
+        name = TextField(pk=True)
+        # name = TextField()
 
-    class MyDeusDevs(Table):
-        age = IntegerField()
-        exp = IntegerField()
-        name = TextField()
+    # class MyDeusDevs(Table):
+    #     age = IntegerField()
+    #     exp = IntegerField()
+    #     name = TextField()
 
     t = MyNiceUser(age = 24, height = 185, name = 'John')
-    t2 = MyNiceUser(age = 125, height = 90, name = 'Kin')
+    # t2 = MyNiceUser(age = 125, height = 90, name = 'Kin')
 
-    t3 = MyDeusDevs(age=40, exp=45, name='Ken')
-    t4 = MyDeusDevs(50, 10, 'Jun')
-    try:
-        t5 = MyDeusDevs(500)
-    except ValueError:
-        pass
-    else:
-        raise
-
+    # t3 = MyDeusDevs(age=40, exp=45, name='Ken')
+    # t4 = MyDeusDevs(50, 10, 'Jun')
+    # try:
+    #     pass
+    #     # t5 = MyDeusDevs(500)
+    # except ValueError:
+    #     pass
+    # else:
+    #     raise
+    t.age = t.age * 2
+    t.update()
     db.debug_print('MyNiceUser')
-    db.debug_print('MyDeusDevs')
+    # db.debug_print('MyDeusDevs')
 
 if __name__ == '__main__':
     main()

@@ -14,6 +14,14 @@ class QueryException(Exception):
        возможно, будут подклассы'''
     pass
 
+def quotes(value):
+    '''ставит величину в кавычки или нет,
+    в зависимости от того, строка это или число
+    нужно для корректной работы id=2, name='John' '''
+    if isinstance(value, int):
+        return value
+    else:
+        return f"'{value}'"
 
 class DBWrapper:
     def __init__(self, file_path = None):
@@ -28,6 +36,22 @@ class DBWrapper:
         t = c.execute(s)
         self._conn.commit()
         return t
+
+    def get_pk_name(self, table):
+        '''возвращает имя primary key
+        pk только один должен быть, иначе исключение'''
+        pk = None
+        for s in self.query('PRAGMA table_info(' + table + ')'):
+            if s[-1] == 1: # если столбец - primary key
+                if pk == None:
+                    pk = s[1] # имя столбца
+                else:
+                    raise DBException('More than one primary key in table')
+        if pk is None:
+            raise DBException('No primary key in table')
+
+        return pk
+
 
     def create_table(self, name, fields, primary_key):
         '''запрос без обратной связи'''
@@ -76,13 +100,38 @@ class DBWrapper:
         self.query(s)
 
     def update_record(self, *, table, content):
-        raise NotImplementedError
+        '''обновляет запись в базе данных'''
 
+
+        pk = self.get_pk_name(table)
+        q = self.query('SELECT * FROM ' + table + \
+                   ' WHERE ' + pk + '=\'' + content[pk] + '\';')
+
+        print('update will update the followings:')
+        for s in q:
+            print('RECORD:')
+            print(s)
+        print('end')
+
+        print('content:', content)
+        def form(content):
+            '''формирует часть запроса'''
+            l = []
+            for k, v in content.items():
+                # v = quote(v)
+                l.append(f'{k}={quotes(v)}')
+
+            return ', '.join(l)
+
+        q = self.query('UPDATE ' + table + ' SET ' + form(content) + \
+                   ' WHERE ' + pk + '=' + quotes(content[pk]) + ';')
 
 
     def debug_print(self, table):
-        # TODO убрать потом
         print('Start of debug print')
+        print(self.get_pk_name(table))
+        # for s in self.query('PRAGMA table_info(' + table + ')'):
+        #     print(s)
         for s in self.query(f'SELECT * FROM {table}'):
             print(s)
         print('End of debug print')
