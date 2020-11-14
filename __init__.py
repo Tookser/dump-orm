@@ -97,7 +97,8 @@ class Table(metaclass = MetaTable):
             if _save:
                 self.save()
             else:
-                raise NotImplementedError
+                pass # TODO понять, как тут лучше
+                # raise NotImplementedError
                 # self._update()
         else:
             raise ValueError('Empty record')
@@ -113,10 +114,30 @@ class Table(metaclass = MetaTable):
         # raise NotImplementedError
         db.update_record(table=self.__class__.__name__, content=self._values)
 
+    def delete(self):
+        '''удаляет объект'''
+        # raise NotImplementedError
+        # TODO сделать
+        db.delete_record(table=self.__class__.__name__,
+                         pk=self.pk_key_name,
+                         pk_value=getattr(self, self.pk_key_name))
+
+    @classmethod
+    def _from_record_constructor(cls, record):
+        '''конструирует объект класса cls из tupl-а record'''
+        return cls(_save=False, *record)
+
+    @classmethod
+    def _sql_cursor_to_list(cls, cursor):
+        '''Превращает курсор в список объектов'''
+        cursor = list(cursor)
+        cursor = [cls._from_record_constructor(record) for record in cursor]
+        return cursor
+
     @classmethod
     def all(cls):
-        # TODO реализовать, предварительно сделав специальный конструктор
-        raise NotImplementedError
+        '''возвращает список из всех объектов'''
+        return cls._sql_cursor_to_list(db.select_all(table=cls.__name__))
 
     def __iter__(self):
         '''возвращает итератор по полям объекта'''
@@ -128,6 +149,16 @@ class Table(metaclass = MetaTable):
         s = f'''Object of type {self.__class__.__name__}:\n'''
         for name, value in self:
             s += f'{name:10} | {value:15}\n'
+        return s
+
+    def __repr__(self):
+        '''для нормального отображения в списках'''
+        s = self.__class__.__name__
+        l = []
+        for name, value in self:
+            l.append('{}={}'.format(name, value))
+        s += '(' + ', '.join(l) + ')'
+
         return s
 
 def main():
@@ -156,6 +187,13 @@ def main():
     #     raise
     t.age = t.age * 2
     t.update()
+    db.debug_print('MyNiceUser')
+    print('All output')
+    print(t.all())
+    print(t.all())
+    print(t.all())
+    db.debug_print('MyNiceUser')
+    t.delete()
     db.debug_print('MyNiceUser')
     # db.debug_print('MyDeusDevs')
 

@@ -14,7 +14,7 @@ class QueryException(Exception):
        возможно, будут подклассы'''
     pass
 
-def quotes(value):
+def quote(value):
     '''ставит величину в кавычки или нет,
     в зависимости от того, строка это или число
     нужно для корректной работы id=2, name='John' '''
@@ -119,13 +119,21 @@ class DBWrapper:
             l = []
             for k, v in content.items():
                 # v = quote(v)
-                l.append(f'{k}={quotes(v)}')
+                l.append(f'{k}={quote(v)}')
 
             return ', '.join(l)
 
         q = self.query('UPDATE ' + table + ' SET ' + form(content) + \
-                   ' WHERE ' + pk + '=' + quotes(content[pk]) + ';')
+                   ' WHERE ' + pk + '=' + quote(content[pk]) + ';')
 
+    def select_all(self, table):
+        '''выбирает все записи из таблицы'''
+        q = self.query('SELECT * FROM ' + table)
+        return q
+
+    def delete_record(self, *, table, pk, pk_value):
+        '''удаляет запись из таблицы table с pk=pk_value'''
+        q = self.query('DELETE FROM {} WHERE {}={}'.format(table, pk, quote(pk_value)))
 
     def debug_print(self, table):
         print('Start of debug print')
