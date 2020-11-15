@@ -3,6 +3,8 @@ import sqlite3
 
 from fields import IntegerField
 
+CAN_DELETE_NON_EXISTING = True
+
 # ЗДЕСЬ ДАННЫЕ ДЛЯ ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ
 # TODO сделать возможность их менять
 
@@ -134,6 +136,12 @@ class DBWrapper:
     def delete_record(self, *, table, pk, pk_value):
         '''удаляет запись из таблицы table с pk=pk_value'''
         q = self.query('DELETE FROM {} WHERE {}={}'.format(table, pk, quote(pk_value)))
+        # l = len(q)
+        # if l > 1:
+        #     raise QueryException('Unknown error, two strings on one pk')
+        # elif l == 0:
+        #     if not CAN_DELETE_NON_EXISTING:
+        #         raise QueryException('Deleting of non-existing record')
 
     def debug_print(self, table):
         print('Start of debug print')

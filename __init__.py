@@ -4,7 +4,7 @@ from collections import namedtuple
 # import pdb
 
 
-from lib import is_int_4_byte
+from lib import is_int_4_byte, StrictDict
 import dblib
 from dblib import field_for_db
 
@@ -162,6 +162,17 @@ class Table(metaclass = MetaTable):
         return s
 
 def main():
+    class MyNiceUser(Table):
+        age = IntegerField()
+        height = IntegerField()
+        name = TextField(pk=True)
+
+    t = MyNiceUser(40, 200, 'Basketbolist')
+    t2 = MyNiceUser(42, 150, 'Basketbolist2')
+    t.delete()
+    db.debug_print('MyNiceUser')
+
+def main1():
     class MyNiceUser(Table):
         age = IntegerField()
         height = IntegerField()
