@@ -132,10 +132,21 @@ class DBWrapper:
         q = self.query('UPDATE ' + table + ' SET ' + form(content) + \
                        ' WHERE ' + pk + '=' + quote(content[pk]) + ';')
 
+
     def select_all(self, table):
         '''выбирает все записи из таблицы'''
         q = self.query_get('SELECT * FROM ' + table)
         return q
+
+    def get(self, table: str, **arg):
+        assert len(arg) == 1
+        key, value = list(arg.items())[0]
+        q = self.query_get('SELECT * FROM ' + table + \
+                 ' WHERE ' + key + '=\'' + value + '\';')
+
+        result = list(q)
+
+        return result
 
     def delete_record(self, *, table, pk, pk_value):
         '''удаляет запись из таблицы table с pk=pk_value'''

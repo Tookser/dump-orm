@@ -155,6 +155,11 @@ class Table(metaclass=MetaTable):
         '''возвращает список из всех объектов'''
         return cls._sql_cursor_to_list(db.select_all(table=cls.__name__))
 
+    @classmethod
+    def get(cls, **kwargs):
+        assert len(kwargs) == 1
+        return cls._sql_cursor_to_list(db.get(table=cls.__name__, **kwargs))
+
     def __iter__(self):
         '''возвращает итератор по полям объекта'''
         # TODO переписать чтобы нормально перебирало поля, а не это вот
@@ -218,9 +223,10 @@ def main1():
     # t.update()
     db.debug_print('MyNiceUser')
     print('All output')
-    print(MyNiceUser.all())
-    print(MyNiceUser.all())
-    print(MyNiceUser.all())
+    # print(MyNiceUser.all())
+    # print(MyNiceUser.all())
+    # print(MyNiceUser.all())
+    print(MyNiceUser.get(name='John'))
     db.debug_print('MyNiceUser')
     # t.delete()
     db.debug_print('MyNiceUser')
