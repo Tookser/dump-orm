@@ -202,7 +202,7 @@ def main1():
     #     exp = IntegerField()
     #     name = TextField()
 
-    t = MyNiceUser(age=24, height=185, name='John')
+    # t = MyNiceUser(age=24, height=185, name='John')
     # t2 = MyNiceUser(age = 125, height = 90, name = 'Kin')
 
     # t3 = MyDeusDevs(age=40, exp=45, name='Ken')
@@ -214,15 +214,15 @@ def main1():
     #     pass
     # else:
     #     raise
-    t.age = t.age * 2
-    t.update()
+    # t.age = t.age * 2
+    # t.update()
     db.debug_print('MyNiceUser')
     print('All output')
-    print(t.all())
-    print(t.all())
-    print(t.all())
+    print(MyNiceUser.all())
+    print(MyNiceUser.all())
+    print(MyNiceUser.all())
     db.debug_print('MyNiceUser')
-    t.delete()
+    # t.delete()
     db.debug_print('MyNiceUser')
     # db.debug_print('MyDeusDevs')
 

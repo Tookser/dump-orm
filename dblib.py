@@ -134,7 +134,7 @@ class DBWrapper:
 
     def select_all(self, table):
         '''выбирает все записи из таблицы'''
-        q = self.query('SELECT * FROM ' + table)
+        q = self.query_get('SELECT * FROM ' + table)
         return q
 
     def delete_record(self, *, table, pk, pk_value):
