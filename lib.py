@@ -6,6 +6,8 @@ def is_int_4_byte(num : int) -> bool:
     return isinstance(num, int) and \
            lower_border_4_byte <= num <= high_border_4_byte
 
+def is_int_2_byte(num: int) -> bool:
+    pass
 class StrictDict(dict):
     '''словарь, в который нельзя добавлять ключи'''
     def __setitem__(self, key, value):

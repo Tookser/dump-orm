@@ -10,7 +10,13 @@ from dblib import field_for_db
 
 from fields import AbstractField, IntegerField, TextField
 
-db = dblib.DBWrapper()
+db = dblib.DBWrapper(config={
+    'dbname': 'test',
+    'user': 'some-postgres',
+    'password': 'mysecretpassword',
+    'host': 'localhost',
+    'port': 5432,
+})
 
 class DBException(Exception):
     pass
@@ -209,7 +215,7 @@ def main1():
     # db.debug_print('MyDeusDevs')
 
 if __name__ == '__main__':
-    main()
+    main1()
 
 # print(IntegerField.type())
 # print(t)

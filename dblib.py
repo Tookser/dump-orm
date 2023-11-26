@@ -1,5 +1,8 @@
 from collections import namedtuple
 import sqlite3
+from typing import Optional
+
+import psycopg
 
 from fields import IntegerField
 
@@ -26,11 +29,12 @@ def quote(value):
         return f"'{value}'"
 
 class DBWrapper:
-    def __init__(self, file_path = None):
-        if file_path is None:
-            self._conn = sqlite3.connect(':memory:')
-        else:
-            raise NotImplementedError
+    def __init__(self, config: dict):
+        self._conn = psycopg.connect(**config)
+        # if config is None:
+        #     self._conn = sqlite3.connect(':memory:')
+        # else:
+        #     raise NotImplementedError
 
     def query(self, s):
         c = self._conn.cursor()
