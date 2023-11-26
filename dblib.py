@@ -33,10 +33,6 @@ def quote(value):
 class DBWrapper:
     def __init__(self, config: dict):
         self._conn = psycopg2.connect(**config)
-        # if config is None:
-        #     self._conn = sqlite3.connect(':memory:')
-        # else:
-        #     raise NotImplementedError
 
     def query(self, s):
         c = self._conn.cursor()
@@ -45,19 +41,24 @@ class DBWrapper:
         self._conn.commit()
         return t
 
+    def query_get(self, s):
+        c = self._conn.cursor()
+        print('QUERY!', s)
+        t = c.execute(s)
+        self._conn.commit()
+        return c.fetchall()
+
     def get_pk_name(self, table):
         '''возвращает имя primary key
         pk только один должен быть, иначе исключение'''
         pk = None
-        for s in self.query('PRAGMA table_info(' + table + ')'):
-            if s[-1] == 1:  # если столбец - primary key
-                if pk == None:
-                    pk = s[1]  # имя столбца
-                else:
-                    raise DBException('More than one primary key in table')
-        if pk is None:
-            raise DBException('No primary key in table')
-
+        query = self.query_get(f"""SELECT column_name FROM information_schema.table_constraints tc
+                            JOIN information_schema.key_column_usage kcu
+                            ON tc.constraint_name = kcu.constraint_name
+                            WHERE tc.table_name = '{table.lower()}'
+                            AND tc.constraint_type = 'PRIMARY KEY'""")
+        # print(query)
+        pk = query[0][0]
         return pk
 
     def create_table(self, name, fields, primary_key):
@@ -67,7 +68,7 @@ class DBWrapper:
             '''проверяет, есть ли поле с именем id'''
             return not any(field.name == 'id' for field in fields)
 
-        s = f'CREATE TABLE {name} ('
+        s = f'CREATE TABLE IF NOT EXISTS {name} ('
 
         if primary_key is None:  # если нет pk
             if is_no_id_field(fields):  # если нет поля под именем 'id'
@@ -108,7 +109,7 @@ class DBWrapper:
         '''обновляет запись в базе данных'''
 
         pk = self.get_pk_name(table)
-        q = self.query('SELECT * FROM ' + table + \
+        q = self.query_get('SELECT * FROM ' + table + \
                        ' WHERE ' + pk + '=\'' + content[pk] + '\';')
 
         print('update will update the followings:')
@@ -151,6 +152,6 @@ class DBWrapper:
         print(self.get_pk_name(table))
         # for s in self.query('PRAGMA table_info(' + table + ')'):
         #     print(s)
-        for s in self.query(f'SELECT * FROM {table}'):
+        for s in self.query_get(f'SELECT * FROM {table}'):
             print(s)
         print('End of debug print')
