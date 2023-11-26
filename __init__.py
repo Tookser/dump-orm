@@ -15,8 +15,9 @@ db = dblib.DBWrapper(config={
     'host': 'localhost',
     'port': '5432',
     'user': 'postgres',
-    'password': 'rudaruda123321Ruda',
-    'database': 'base1'
+    # 'password': 'rudaruda123321Ruda',
+    'password': 'mysecretpassword',
+    'database': 'postgres'
 })
 
 # DATABASE = {

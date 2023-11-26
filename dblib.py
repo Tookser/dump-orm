@@ -13,6 +13,8 @@ CAN_DELETE_NON_EXISTING = True
 
 field_for_db = namedtuple('field_for_db', 'name type pk')
 
+class DBException(Exception):
+    pass
 
 class QueryException(Exception):
     '''исключение кидается при ошибках, связанных с запросами
@@ -33,6 +35,7 @@ def quote(value):
 class DBWrapper:
     def __init__(self, config: dict):
         self._conn = psycopg2.connect(**config)
+        self._config = config
         # if config is None:
         #     self._conn = sqlite3.connect(':memory:')
         # else:
@@ -44,6 +47,13 @@ class DBWrapper:
         t = c.execute(s)
         self._conn.commit()
         return t
+
+    def query_get(self, s):
+        c = self._conn.cursor()
+        print('QUERY!', s)
+        t = c.execute(s)
+        self._conn.commit()
+        return c.fetchall()
 
     def get_pk_name(self, table):
         '''возвращает имя primary key
@@ -67,7 +77,7 @@ class DBWrapper:
             '''проверяет, есть ли поле с именем id'''
             return not any(field.name == 'id' for field in fields)
 
-        s = f'CREATE TABLE {name} ('
+        s = f'CREATE TABLE IF NOT EXISTS {name} ('
 
         if primary_key is None:  # если нет pk
             if is_no_id_field(fields):  # если нет поля под именем 'id'
