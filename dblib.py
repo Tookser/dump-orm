@@ -2,7 +2,7 @@ from collections import namedtuple
 import sqlite3
 from typing import Optional
 
-import psycopg
+import psycopg2
 
 from fields import IntegerField
 
@@ -19,6 +19,7 @@ class QueryException(Exception):
        возможно, будут подклассы'''
     pass
 
+
 def quote(value):
     '''ставит величину в кавычки или нет,
     в зависимости от того, строка это или число
@@ -28,9 +29,10 @@ def quote(value):
     else:
         return f"'{value}'"
 
+
 class DBWrapper:
     def __init__(self, config: dict):
-        self._conn = psycopg.connect(**config)
+        self._conn = psycopg2.connect(**config)
         # if config is None:
         #     self._conn = sqlite3.connect(':memory:')
         # else:
@@ -48,9 +50,9 @@ class DBWrapper:
         pk только один должен быть, иначе исключение'''
         pk = None
         for s in self.query('PRAGMA table_info(' + table + ')'):
-            if s[-1] == 1: # если столбец - primary key
+            if s[-1] == 1:  # если столбец - primary key
                 if pk == None:
-                    pk = s[1] # имя столбца
+                    pk = s[1]  # имя столбца
                 else:
                     raise DBException('More than one primary key in table')
         if pk is None:
@@ -58,33 +60,30 @@ class DBWrapper:
 
         return pk
 
-
     def create_table(self, name, fields, primary_key):
         '''запрос без обратной связи'''
+
         def is_no_id_field(fields):
             '''проверяет, есть ли поле с именем id'''
             return not any(field.name == 'id' for field in fields)
 
-
         s = f'CREATE TABLE {name} ('
 
-        if primary_key is None: # если нет pk
-            if is_no_id_field(fields): # если нет поля под именем 'id'
+        if primary_key is None:  # если нет pk
+            if is_no_id_field(fields):  # если нет поля под именем 'id'
                 fields.append(field_for_db('id', IntegerField._type, True))
                 primary_key = 'id'
             else:
                 raise QueryException("There is already field 'id' in the table")
 
-
         s += ', '.join([f'{field.name} {field.type}'
                         for field in fields]
-                        +
-                        ([f'PRIMARY KEY({primary_key})']
-                          if primary_key else []))
+                       +
+                       ([f'PRIMARY KEY({primary_key})']
+                        if primary_key else []))
         s += ');'
         # print(s)
         self.query(s)
-
 
     def make_record(self, *, table, content):
         '''вставляет запись'''
@@ -101,17 +100,16 @@ class DBWrapper:
                   for value in values]
         s = (f'INSERT INTO {table} '
              '(' + ', '.join(keys) + ') '
-             'VALUES '
-             '(' + ', '.join(values) + ');')
+                                     'VALUES '
+                                     '(' + ', '.join(values) + ');')
         self.query(s)
 
     def update_record(self, *, table, content):
         '''обновляет запись в базе данных'''
 
-
         pk = self.get_pk_name(table)
         q = self.query('SELECT * FROM ' + table + \
-                   ' WHERE ' + pk + '=\'' + content[pk] + '\';')
+                       ' WHERE ' + pk + '=\'' + content[pk] + '\';')
 
         print('update will update the followings:')
         for s in q:
@@ -120,6 +118,7 @@ class DBWrapper:
         print('end')
 
         print('content:', content)
+
         def form(content):
             '''формирует часть запроса'''
             l = []
@@ -130,7 +129,7 @@ class DBWrapper:
             return ', '.join(l)
 
         q = self.query('UPDATE ' + table + ' SET ' + form(content) + \
-                   ' WHERE ' + pk + '=' + quote(content[pk]) + ';')
+                       ' WHERE ' + pk + '=' + quote(content[pk]) + ';')
 
     def select_all(self, table):
         '''выбирает все записи из таблицы'''

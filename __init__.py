@@ -11,12 +11,23 @@ from dblib import field_for_db
 from fields import AbstractField, IntegerField, TextField
 
 db = dblib.DBWrapper(config={
-    'dbname': 'test',
-    'user': 'some-postgres',
-    'password': 'mysecretpassword',
+    # 'drivername': 'postgresql+psycopg2',
     'host': 'localhost',
-    'port': 5432,
+    'port': '5432',
+    'user': 'postgres',
+    'password': 'rudaruda123321Ruda',
+    'database': 'base1'
 })
+
+# DATABASE = {
+# 'drivername': 'postgresql+psycopg2',
+# 'host': 'localhost',
+# 'port': '5432',
+# 'username': 'postgres',
+# 'password': тут пароль,
+# 'database': 'base'
+# }
+
 
 class DBException(Exception):
     pass
@@ -38,12 +49,12 @@ class MetaTable(type):
         fields.append(field_for_db(key,
                                    value.__class__.type(),
                                    value.pk))
-        value.name = key # нужно, чтобы переменная знала своё имя?
+        value.name = key  # нужно, чтобы переменная знала своё имя?
 
     def __init__(self, name, bases, attrs):
         super().__init__(name, bases, attrs)
 
-        if name != 'Table': # TODO сделать константу
+        if name != 'Table':  # TODO сделать константу
             # словарь из строк с типами ячеек (int, text и т.д.)
             self._types_of_values = {}
 
@@ -55,8 +66,8 @@ class MetaTable(type):
             # список из field_for_db
             fields = []
 
-            self.pk_flag = False # флаг показывает, есть ли уже primary key
-            self.pk_key_name = None # его название
+            self.pk_flag = False  # флаг показывает, есть ли уже primary key
+            self.pk_key_name = None  # его название
             for key, value in attrs.items():
                 if isinstance(value, AbstractField):
                     self._add_field(key, value, fields)
@@ -71,7 +82,7 @@ class MetaTable(type):
                 raise DBException('Can\'t create table, internal error')
 
 
-class Table(metaclass = MetaTable):
+class Table(metaclass=MetaTable):
     def __init__(self, *args, _save=True, **kwargs):
         '''создаёт объект
         _save - если нужно сохранять
@@ -95,21 +106,19 @@ class Table(metaclass = MetaTable):
                         setattr(self, key, kwargs[key])
                         # print('set %s' % key)
                     else:
-                        raise KeyError('There are no key {} in table {}'.\
-                                        format(key, self.__class__.__name__))
+                        raise KeyError('There are no key {} in table {}'. \
+                                       format(key, self.__class__.__name__))
             else:
                 raise ValueError('Unknown Error')
 
             if _save:
                 self.save()
             else:
-                pass # TODO понять, как тут лучше
+                pass  # TODO понять, как тут лучше
                 # raise NotImplementedError
                 # self._update()
         else:
             raise ValueError('Empty record')
-
-
 
     def save(self):
         '''сохранение при создании объекта'''
@@ -167,6 +176,7 @@ class Table(metaclass = MetaTable):
 
         return s
 
+
 def main():
     class MyNiceUser(Table):
         age = IntegerField()
@@ -177,6 +187,7 @@ def main():
     t2 = MyNiceUser(42, 150, 'Basketbolist2')
     t.delete()
     db.debug_print('MyNiceUser')
+
 
 def main1():
     class MyNiceUser(Table):
@@ -190,7 +201,7 @@ def main1():
     #     exp = IntegerField()
     #     name = TextField()
 
-    t = MyNiceUser(age = 24, height = 185, name = 'John')
+    t = MyNiceUser(age=24, height=185, name='John')
     # t2 = MyNiceUser(age = 125, height = 90, name = 'Kin')
 
     # t3 = MyDeusDevs(age=40, exp=45, name='Ken')
@@ -213,6 +224,7 @@ def main1():
     t.delete()
     db.debug_print('MyNiceUser')
     # db.debug_print('MyDeusDevs')
+
 
 if __name__ == '__main__':
     main1()

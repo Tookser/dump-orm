@@ -2,10 +2,11 @@ import abc
 
 from lib import is_int_4_byte
 
-class AbstractField(abc.ABC): # TODO мб переименовать в Field
+
+class AbstractField(abc.ABC):  # TODO мб переименовать в Field
     @abc.abstractmethod
     def __init__(self, *args, **kwargs):
-        self._no_name = True # флаг, говорящий, что пока нет имени у колонки
+        self._no_name = True  # флаг, говорящий, что пока нет имени у колонки
         self._type = None
         self._primary_key = kwargs.get('pk', False)
 
@@ -45,15 +46,17 @@ class AbstractField(abc.ABC): # TODO мб переименовать в Field
         else:
             raise ValueError('Field name should be str')
 
+
 class IntegerField(AbstractField):
     _type = 'int'
     '''целочисленное поле'''
-    def __init__(self, *args, **kwargs): #size=4):
+
+    def __init__(self, *args, **kwargs):  # size=4):
         # TODO реализовать разные размеры
         super().__init__(*args, **kwargs)
 
     # def __str__(self):
-        # return f'{self.name} int'
+    # return f'{self.name} int'
 
     def __set__(self, instance, value):
         # print('SET INT')
@@ -63,11 +66,12 @@ class IntegerField(AbstractField):
             raise ValueError(f'You should input int4, \
                                but your entered "{value}"')
 
+
 class TextField(AbstractField):
     '''текстовое поле'''
     _type = 'text'
 
-    def __init__(self, *args, **kwargs): #size=4):
+    def __init__(self, *args, **kwargs):  # size=4):
         # TODO разные размеры
         super().__init__(*args, **kwargs)
 
@@ -81,4 +85,3 @@ class TextField(AbstractField):
         else:
             raise ValueError(f'You should input string, \
                                but your entered "{value}"')
-
