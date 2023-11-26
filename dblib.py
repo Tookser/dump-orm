@@ -1,16 +1,9 @@
 from collections import namedtuple
-import sqlite3
-from typing import Optional
-
 import psycopg2
 
 from fields import IntegerField
 
 CAN_DELETE_NON_EXISTING = True
-
-# ЗДЕСЬ ДАННЫЕ ДЛЯ ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ
-# TODO сделать возможность их менять
-
 field_for_db = namedtuple('field_for_db', 'name type pk')
 
 
@@ -36,21 +29,19 @@ class DBWrapper:
 
     def query(self, s):
         c = self._conn.cursor()
-        print('QUERY!', s)
         t = c.execute(s)
         self._conn.commit()
         return t
 
     def query_get(self, s):
         c = self._conn.cursor()
-        print('QUERY!', s)
         t = c.execute(s)
         self._conn.commit()
         return c.fetchall()
 
     def get_pk_name(self, table):
-        '''возвращает имя primary key
-        pk только один должен быть, иначе исключение'''
+        """возвращает имя primary key
+        pk только один должен быть, иначе исключение"""
         pk = None
         query = self.query_get(f"""SELECT column_name FROM information_schema.table_constraints tc
                             JOIN information_schema.key_column_usage kcu
@@ -62,10 +53,11 @@ class DBWrapper:
         return pk
 
     def create_table(self, name, fields, primary_key):
-        '''запрос без обратной связи'''
+        """запрос без обратной связи"""
+        self.query(f"DROP TABLE IF EXISTS {name}")
 
         def is_no_id_field(fields):
-            '''проверяет, есть ли поле с именем id'''
+            """проверяет, есть ли поле с именем id"""
             return not any(field.name == 'id' for field in fields)
 
         s = f'CREATE TABLE IF NOT EXISTS {name} ('
@@ -83,11 +75,10 @@ class DBWrapper:
                        ([f'PRIMARY KEY({primary_key})']
                         if primary_key else []))
         s += ');'
-        # print(s)
         self.query(s)
 
     def make_record(self, *, table, content):
-        '''вставляет запись'''
+        """вставляет запись"""
         keys = []
         values = []
 
@@ -106,35 +97,25 @@ class DBWrapper:
         self.query(s)
 
     def update_record(self, *, table, content):
-        '''обновляет запись в базе данных'''
+        """обновляет запись в базе данных"""
 
         pk = self.get_pk_name(table)
-        q = self.query_get('SELECT * FROM ' + table + \
-                       ' WHERE ' + pk + '=\'' + content[pk] + '\';')
-
-        print('update will update the followings:')
-        for s in q:
-            print('RECORD:')
-            print(s)
-        print('end')
-
-        print('content:', content)
+        q = self.query_get('SELECT * FROM ' + table +
+                           ' WHERE ' + pk + '=\'' + content[pk] + '\';')
 
         def form(content):
-            '''формирует часть запроса'''
+            """формирует часть запроса"""
             l = []
             for k, v in content.items():
-                # v = quote(v)
                 l.append(f'{k}={quote(v)}')
 
             return ', '.join(l)
 
-        q = self.query('UPDATE ' + table + ' SET ' + form(content) + \
-                       ' WHERE ' + pk + '=' + quote(content[pk]) + ';')
-
+        self.query('UPDATE ' + table + ' SET ' + form(content) +
+                   ' WHERE ' + pk + '=' + quote(content[pk]) + ';')
 
     def select_all(self, table):
-        '''выбирает все записи из таблицы'''
+        """выбирает все записи из таблицы"""
         q = self.query_get('SELECT * FROM ' + table)
         return q
 
@@ -142,27 +123,12 @@ class DBWrapper:
         assert len(arg) == 1
         key, value = list(arg.items())[0]
         q = self.query_get('SELECT * FROM ' + table + \
-                 ' WHERE ' + key + '=\'' + value + '\';')
+                           ' WHERE ' + key + '=\'' + value + '\';')
 
         result = list(q)
 
         return result
 
     def delete_record(self, *, table, pk, pk_value):
-        '''удаляет запись из таблицы table с pk=pk_value'''
-        q = self.query('DELETE FROM {} WHERE {}={}'.format(table, pk, quote(pk_value)))
-        # l = len(q)
-        # if l > 1:
-        #     raise QueryException('Unknown error, two strings on one pk')
-        # elif l == 0:
-        #     if not CAN_DELETE_NON_EXISTING:
-        #         raise QueryException('Deleting of non-existing record')
-
-    def debug_print(self, table):
-        print('Start of debug print')
-        print(self.get_pk_name(table))
-        # for s in self.query('PRAGMA table_info(' + table + ')'):
-        #     print(s)
-        for s in self.query_get(f'SELECT * FROM {table}'):
-            print(s)
-        print('End of debug print')
+        """удаляет запись из таблицы table с pk=pk_value"""
+        self.query('DELETE FROM {} WHERE {}={}'.format(table, pk, quote(pk_value)))

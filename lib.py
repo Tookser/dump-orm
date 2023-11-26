@@ -19,5 +19,3 @@ class StrictDict(dict):
         if key not in self:
             raise KeyError("{} is illegal key".format(repr(key)))
         dict.__setitem__(self, key, value)
-
-# print(is_int_4_byte('fdsa'))

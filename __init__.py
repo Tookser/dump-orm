@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-import abc
-from collections import namedtuple
-# import pdb
-
-
-from lib import is_int_4_byte, StrictDict
 import dblib
 from dblib import field_for_db
 
@@ -15,19 +9,10 @@ db = dblib.DBWrapper(config={
     'host': 'localhost',
     'port': '5432',
     'user': 'postgres',
-    # 'password': 'rudaruda123321Ruda',
-    'password': 'mysecretpassword',
+    'password': 'rudaruda123321Ruda',
+    # 'password': 'mysecretpassword',
     'database': 'postgres'
 })
-
-# DATABASE = {
-# 'drivername': 'postgresql+psycopg2',
-# 'host': 'localhost',
-# 'port': '5432',
-# 'username': 'postgres',
-# 'password': тут пароль,
-# 'database': 'base'
-# }
 
 
 class DBException(Exception):
@@ -62,8 +47,6 @@ class MetaTable(type):
             # список имён полей, для каждой таблицы свой
             self._names = []
 
-            # field_for_db = namedtuple('field_for_db', 'name type pk')
-
             # список из field_for_db
             fields = []
 
@@ -75,7 +58,6 @@ class MetaTable(type):
             if not fields:
                 raise DBException('Can\'t create type of objects \
                                   without fields')
-            # for field in fields:
 
             try:
                 db.create_table(name, fields, self.pk_key_name)
@@ -85,9 +67,7 @@ class MetaTable(type):
 
 class Table(metaclass=MetaTable):
     def __init__(self, *args, _save=True, **kwargs):
-        '''создаёт объект
-        _save - если нужно сохранять
-        при false обращение по id'у'''
+        """создаёт объект _save - если нужно сохранять при false обращение по id'у"""
         self._values = {}
 
         if bool(args) and bool(kwargs):
@@ -116,43 +96,38 @@ class Table(metaclass=MetaTable):
                 self.save()
             else:
                 pass  # TODO понять, как тут лучше
-                # raise NotImplementedError
-                # self._update()
         else:
             raise ValueError('Empty record')
 
     def save(self):
-        '''сохранение при создании объекта'''
+        """сохранение при создании объекта"""
         db.make_record(table=self.__class__.__name__, content=iter(self))
 
     def update(self):
-        '''обновление объекта в БД'''
-        # raise NotImplementedError
+        """обновление объекта в БД"""
         db.update_record(table=self.__class__.__name__, content=self._values)
 
     def delete(self):
-        '''удаляет объект'''
-        # raise NotImplementedError
-        # TODO сделать
+        """удаляет объект"""
         db.delete_record(table=self.__class__.__name__,
                          pk=self.pk_key_name,
                          pk_value=getattr(self, self.pk_key_name))
 
     @classmethod
     def _from_record_constructor(cls, record):
-        '''конструирует объект класса cls из tupl-а record'''
+        """конструирует объект класса cls из tupl-а record"""
         return cls(_save=False, *record)
 
     @classmethod
     def _sql_cursor_to_list(cls, cursor):
-        '''Превращает курсор в список объектов'''
+        """Превращает курсор в список объектов"""
         cursor = list(cursor)
         cursor = [cls._from_record_constructor(record) for record in cursor]
         return cursor
 
     @classmethod
     def all(cls):
-        '''возвращает список из всех объектов'''
+        """возвращает список из всех объектов"""
         return cls._sql_cursor_to_list(db.select_all(table=cls.__name__))
 
     @classmethod
@@ -161,19 +136,18 @@ class Table(metaclass=MetaTable):
         return cls._sql_cursor_to_list(db.get(table=cls.__name__, **kwargs))
 
     def __iter__(self):
-        '''возвращает итератор по полям объекта'''
-        # TODO переписать чтобы нормально перебирало поля, а не это вот
+        """возвращает итератор по полям объекта"""
         return iter(self._values.items())
 
     def __str__(self):
-        '''для удобного вывода'''
+        """для удобного вывода"""
         s = f'''Object of type {self.__class__.__name__}:\n'''
         for name, value in self:
             s += f'{name:10} | {value:15}\n'
         return s
 
     def __repr__(self):
-        '''для нормального отображения в списках'''
+        """для нормального отображения в списках"""
         s = self.__class__.__name__
         l = []
         for name, value in self:
@@ -183,64 +157,15 @@ class Table(metaclass=MetaTable):
         return s
 
 
-def main():
-    class MyNiceUser(Table):
-        age = IntegerField()
-        height = IntegerField()
-        name = TextField(pk=True)
+def create_table():
+    class UrlProcessingResults(Table):
+        url = TextField(pk=True)
+        topkeywords = TextField()
+        sentiment = TextField()
 
-    t = MyNiceUser(40, 200, 'Basketbolist')
-    t2 = MyNiceUser(42, 150, 'Basketbolist2')
-    t.delete()
-    db.debug_print('MyNiceUser')
-
-
-def main1():
-    class MyNiceUser(Table):
-        age = IntegerField()
-        height = IntegerField()
-        name = TextField(pk=True)
-        # name = TextField()
-
-    # class MyDeusDevs(Table):
-    #     age = IntegerField()
-    #     exp = IntegerField()
-    #     name = TextField()
-
-    # t = MyNiceUser(age=24, height=185, name='John')
-    # t2 = MyNiceUser(age = 125, height = 90, name = 'Kin')
-
-    # t3 = MyDeusDevs(age=40, exp=45, name='Ken')
-    # t4 = MyDeusDevs(50, 10, 'Jun')
-    # try:
-    #     pass
-    #     # t5 = MyDeusDevs(500)
-    # except ValueError:
-    #     pass
-    # else:
-    #     raise
-    # t.age = t.age * 2
-    # t.update()
-    db.debug_print('MyNiceUser')
-    print('All output')
-    # print(MyNiceUser.all())
-    # print(MyNiceUser.all())
-    # print(MyNiceUser.all())
-    print(MyNiceUser.get(name='John'))
-    db.debug_print('MyNiceUser')
-    # t.delete()
-    db.debug_print('MyNiceUser')
-    # db.debug_print('MyDeusDevs')
+    # a = UrlProcessingResults(url="localhost::123", topkeywords="123", sentiment="123")
+    # a.update()
 
 
 if __name__ == '__main__':
-    main1()
-
-# print(IntegerField.type())
-# print(t)
-# print(t2)
-# for i in t:
-#     print('hello:', i)
-# for i in t2:
-#     print('hello 2:', i)
-# # t = MyNiceUser(10, 100)
+    create_table()

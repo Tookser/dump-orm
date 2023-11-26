@@ -1,5 +1,4 @@
 import abc
-
 from lib import is_int_4_byte
 
 
@@ -55,9 +54,6 @@ class IntegerField(AbstractField):
         # TODO реализовать разные размеры
         super().__init__(*args, **kwargs)
 
-    # def __str__(self):
-    # return f'{self.name} int'
-
     def __set__(self, instance, value):
         # print('SET INT')
         if is_int_4_byte(value):
@@ -74,9 +70,6 @@ class TextField(AbstractField):
     def __init__(self, *args, **kwargs):  # size=4):
         # TODO разные размеры
         super().__init__(*args, **kwargs)
-
-    # def __str__(self):
-    #     return f'{self.name} int'
 
     def __set__(self, instance, value):
         # print('SET STR')
